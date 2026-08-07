@@ -1,8 +1,8 @@
-let shaderProgram;
+let mirrorShader;
 let envTexture;
 
 function preload() {
-  shaderProgram = loadShader(
+  mirrorShader = loadShader(
     "mirror.vert",
     "mirror.frag"
   );
@@ -15,33 +15,46 @@ function setup() {
 
   noStroke();
 
-  shader(shaderProgram);
+  pixelDensity(1);
 }
 
 function draw() {
-
   background(0);
 
-  shaderProgram.setUniform(
-    "u_env",
+  orbitControl();
+
+  drawBall(-250, -150);
+  drawBall(0, -150);
+  drawBall(250, -150);
+
+  drawBall(-250, 150);
+  drawBall(0, 150);
+  drawBall(250, 150);
+}
+
+function drawBall(x, y) {
+
+  shader(mirrorShader);
+
+  mirrorShader.setUniform(
+    "u_envMap",
     envTexture
   );
 
-  shaderProgram.setUniform(
+  mirrorShader.setUniform(
     "u_time",
     millis() * 0.001
   );
 
-  sphere(
-    200,
-    64,
-    64
-  );
+  push();
+
+  translate(x, y, 0);
+
+  sphere(100, 96, 96);
+
+  pop();
 }
 
 function windowResized() {
-  resizeCanvas(
-    windowWidth,
-    windowHeight
-  );
+  resizeCanvas(windowWidth, windowHeight);
 }

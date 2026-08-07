@@ -1,86 +1,59 @@
-precision highp float;
+#ifdef GL_ES
+precision mediump float;
+#endif
 
-uniform sampler2D u_env;
+uniform sampler2D u_envMap;
 uniform float u_time;
 
 varying vec3 vNormal;
 varying vec3 vPosition;
 
+void main() {
 
-vec2 directionToUV(vec3 dir)
-{
-    float longitude = atan(dir.z, dir.x);
-    float latitude = asin(clamp(dir.y, -1.0, 1.0));
-
-    float u = 0.5 + longitude / (2.0 * 3.14159265);
-    float v = 0.5 - latitude / 3.14159265;
-
-    return vec2(u, v);
-}
-
-
-void main()
-{
     vec3 normal = normalize(vNormal);
 
-    vec3 viewDir =
-        normalize(-vPosition);
+    vec3 viewDir = normalize(-vPosition);
+
+    vec3 reflectDir = reflect(-viewDir, normal);
 
 
-    vec3 reflection =
-        reflect(
-            -viewDir,
-            normal
-        );
+    // Animate reflection direction
+    float angle = u_time * 0.25;
+
+    float c = cos(angle);
+    float s = sin(angle);
+
+    reflectDir = vec3(
+        c * reflectDir.x - s * reflectDir.z,
+        reflectDir.y,
+        s * reflectDir.x + c * reflectDir.z
+    );
 
 
-    vec2 uv =
-        directionToUV(reflection);
+    // Convert reflection vector to spherical UV
+
+    float u = 0.5 + atan(reflectDir.z, reflectDir.x) / (2.0 * 3.14159265);
+
+    float v = 0.5 - asin(reflectDir.y) / 3.14159265;
 
 
-    vec3 env =
-        texture2D(
-            u_env,
-            uv
-        ).rgb;
+    vec3 env = texture2D(
+        u_envMap,
+        vec2(u, v)
+    ).rgb;
 
 
-    // make the reflection sharper
-    env =
-        pow(
-            env,
-            vec3(0.45)
-        );
+    // Fresnel rim
+
+    float fresnel = pow(
+        1.0 - dot(viewDir, normal),
+        3.0
+    );
 
 
-    // Fresnel reflection strength
-    float fresnel =
-        pow(
-            1.0 - max(dot(viewDir, normal), 0.0),
-            4.0
-        );
+    env *= 0.65;
+    env += fresnel * 0.8;
 
 
-    // chrome dark mirror base
-    vec3 chrome =
-        env * 1.35;
-
-
-    chrome =
-        mix(
-            chrome * 0.25,
-            chrome,
-            fresnel
-        );
-
-
-    // bright reflective rim
-    chrome += fresnel * 0.35;
-
-
-    gl_FragColor =
-        vec4(
-            chrome,
-            1.0
-        );
+    gl_FragColor = vec4(env, 1.0);
 }
