@@ -1,58 +1,37 @@
-let mirrorShader;
+let theShader;
 let envTexture;
 
 function preload() {
-  mirrorShader = loadShader(
-    "mirror.vert",
-    "mirror.frag"
-  );
-
-  envTexture = loadImage("tim_new.png");
+  theShader = loadShader("mirror.vert", "mirror.frag");
+  envTexture = loadImage("red_ball.png");
 }
 
 function setup() {
   createCanvas(windowWidth, windowHeight, WEBGL);
+  pixelDensity(1);
 
   noStroke();
-
-  pixelDensity(1);
 }
 
 function draw() {
   background(0);
 
-  orbitControl();
+  shader(theShader);
 
-  drawBall(-250, -150);
-  drawBall(0, -150);
-  drawBall(250, -150);
+  theShader.setUniform("u_texture", envTexture);
+  theShader.setUniform("u_time", millis() * 0.001);
+  theShader.setUniform("u_resolution", [
+    width,
+    height
+  ]);
 
-  drawBall(-250, 150);
-  drawBall(0, 150);
-  drawBall(250, 150);
-}
+  rotateY(frameCount * 0.005);
 
-function drawBall(x, y) {
-
-  shader(mirrorShader);
-
-  mirrorShader.setUniform(
-    "u_envMap",
-    envTexture
+  sphere(
+    min(width, height) * 0.35,
+    128,
+    128
   );
-
-  mirrorShader.setUniform(
-    "u_time",
-    millis() * 0.001
-  );
-
-  push();
-
-  translate(x, y, 0);
-
-  sphere(100, 96, 96);
-
-  pop();
 }
 
 function windowResized() {
