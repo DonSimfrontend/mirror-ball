@@ -1,58 +1,48 @@
 let shaderProgram;
+let envTexture;
 
 function preload() {
-
-  console.log("Loading shaders...");
-
   shaderProgram = loadShader(
     "mirror.vert",
-    "mirror.frag",
-    () => {
-      console.log("SHADER LOAD OK");
-    },
-    (err) => {
-      console.log("SHADER LOAD FAILED", err);
-    }
+    "mirror.frag"
   );
 
+  envTexture = loadImage("tim_new.png");
 }
 
 function setup() {
-
-  createCanvas(
-    windowWidth,
-    windowHeight,
-    WEBGL
-  );
+  createCanvas(windowWidth, windowHeight, WEBGL);
 
   noStroke();
 
+  shader(shaderProgram);
+
+  shaderProgram.setUniform(
+    "u_env",
+    envTexture
+  );
 }
 
 function draw() {
-
   background(0);
 
-  if (shaderProgram) {
+  shaderProgram.setUniform(
+    "u_time",
+    millis() * 0.001
+  );
 
-    shader(shaderProgram);
+  rotateY(millis() * 0.0002);
 
-    rotateY(frameCount * 0.01);
-    rotateX(frameCount * 0.005);
-
-    sphere(200, 64, 64);
-
-    resetShader();
-
-  }
-
+  sphere(
+    200,
+    64,
+    64
+  );
 }
 
 function windowResized() {
-
   resizeCanvas(
     windowWidth,
     windowHeight
   );
-
 }
