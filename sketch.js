@@ -25,7 +25,7 @@ function draw() {
     height
   ]);
 
-  rotateY(frameCount * 0.005);
+  rotateY(frameCount * 0.0005);
 
   sphere(
     min(width, height) * 0.35,
