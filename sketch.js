@@ -1,10 +1,12 @@
 let theShader;
 let envTexture;
 
+
 function preload() {
   theShader = loadShader("mirror.vert", "mirror.frag");
-  envTexture = loadImage("red_ball.png");
+  envTexture = loadImage("lava_planet_equirect.png");
 }
+
 
 function setup() {
   createCanvas(windowWidth, windowHeight, WEBGL);
@@ -12,6 +14,7 @@ function setup() {
 
   noStroke();
 }
+
 
 function draw() {
   background(0);
@@ -25,7 +28,8 @@ function draw() {
     height
   ]);
 
-  rotateY(frameCount * 0.0005);
+  // Final rotation speed for this test
+  rotateY(frameCount * 0.00055555);
 
   sphere(
     min(width, height) * 0.35,
@@ -33,6 +37,7 @@ function draw() {
     128
   );
 }
+
 
 function windowResized() {
   resizeCanvas(windowWidth, windowHeight);
