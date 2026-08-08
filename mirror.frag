@@ -38,10 +38,9 @@ void main() {
 
     vec3 color = tex.rgb * shading;
 
-    // tiny rim light
+    // Tiny rim light
     color += vec3(1.0, 0.7, 0.3) * fresnel * 0.15;
 
 
     gl_FragColor = vec4(color, tex.a);
-
 }
