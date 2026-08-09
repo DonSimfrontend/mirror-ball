@@ -1,5 +1,4 @@
 precision mediump float;
-
 uniform sampler2D u_texture;
 varying vec3 vNormal;
 
@@ -26,15 +25,6 @@ void main() {
     float shading = mix(0.65, 1.0, light);
 
     vec3 color = vec3(0.0, 1.0, 0.0) * shading;
-
-    // TEST: bright band based directly on surface normal
-    float lightning = smoothstep(
-        0.03,
-        0.0,
-        abs(n.x)
-    );
-
-    color = mix(color, vec3(1.0), lightning);
 
     gl_FragColor = vec4(color, tex.a);
 }
