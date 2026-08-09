@@ -46,7 +46,24 @@ void main() {
     float glow = smoothstep(0.08, 0.0, abs(n.x - jag));
     glow *= flicker;
 
+    float jag2 =
+        0.035 * sin(n.y * 16.0 + 1.3) +
+        0.018 * sin(n.y * 37.0 + 0.7) +
+        0.009 * sin(n.y * 71.0 + 2.1);
+
+    float lightning2 = smoothstep(
+        0.035,
+        0.0,
+        abs(n.x - (jag2 - 0.16))
+    );
+    lightning2 *= flicker;
+
+    float glow2 = smoothstep(0.08, 0.0, abs(n.x - (jag2 - 0.16)));
+    glow2 *= flicker;
+
     float highlight = clamp(lightning + 0.18 * glow * (1.0 - lightning), 0.0, 1.0);
+    float highlight2 = clamp(lightning2 + 0.18 * glow2 * (1.0 - lightning2), 0.0, 1.0);
+    highlight = max(highlight, highlight2);
     color = mix(color, vec3(1.0), highlight);
 
     gl_FragColor = vec4(color, tex.a);
