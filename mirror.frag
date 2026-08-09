@@ -27,11 +27,16 @@ void main() {
 
     vec3 color = vec3(0.0, 1.0, 0.0) * shading;
 
-    // TEST: bright band based directly on surface normal
+    // JAGGED LIGHTNING
+    float jag =
+        0.035 * sin(n.y * 18.0) +
+        0.020 * sin(n.y * 41.0) +
+        0.010 * sin(n.y * 83.0);
+
     float lightning = smoothstep(
-        0.03,
+        0.035,
         0.0,
-        abs(n.x)
+        abs(n.x - jag)
     );
 
     color = mix(color, vec3(1.0), lightning);
