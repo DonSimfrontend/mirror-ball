@@ -2,7 +2,6 @@ precision mediump float;
 
 uniform sampler2D u_texture;
 uniform float u_time;
-uniform float u_time;
 varying vec3 vNormal;
 
 void main() {
@@ -42,9 +41,6 @@ void main() {
     );
 
     float flicker = step(0.5, fract(u_time * 2.5));
-lightning *= flicker;
-
-float flicker = step(0.5, fract(u_time * 2.5));
 lightning *= flicker;
 
 color = mix(color, vec3(1.0), lightning);
