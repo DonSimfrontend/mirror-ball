@@ -41,9 +41,13 @@ void main() {
     );
 
     float flicker = step(0.5, fract(u_time * 2.5));
-lightning *= flicker;
+    lightning *= flicker;
 
-color = mix(color, vec3(1.0), lightning);
+    float glow = smoothstep(0.08, 0.0, abs(n.x - jag));
+    glow *= flicker;
+
+    float highlight = clamp(lightning + 0.18 * glow * (1.0 - lightning), 0.0, 1.0);
+    color = mix(color, vec3(1.0), highlight);
 
     gl_FragColor = vec4(color, tex.a);
 }
