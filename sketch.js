@@ -2,7 +2,7 @@ let shaderProgram;
 let timTexture;
 
 function preload() {
-  timTexture = loadImage('tim_new.png');
+  timTexture = loadImage('TimNewGlobe.png');
   shaderProgram = loadShader('mirror.vert', 'mirror.frag');
 }
 
