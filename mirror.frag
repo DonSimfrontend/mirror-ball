@@ -451,13 +451,13 @@ void main() {
 
 
     // --------------------------------------------------
-    // LIGHTNING WIDTH — REDUCED
+    // LIGHTNING WIDTH — 2X EXPERIMENT
     // --------------------------------------------------
 
     float width =
         mix(
-            0.030,
-            0.090,
+            0.060,
+            0.180,
             lightning
         );
 
