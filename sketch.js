@@ -1,28 +1,31 @@
-let theShader;
+let shaderProgram;
+let timTexture;
 
 function preload() {
-  theShader = loadShader("mirror.vert", "mirror.frag");
+  timTexture = loadImage('tim_new.png');
+  shaderProgram = loadShader('mirror.vert', 'mirror.frag');
 }
 
 function setup() {
   createCanvas(windowWidth, windowHeight, WEBGL);
-  pixelDensity(1);
   noStroke();
+
+  shader(shaderProgram);
 }
 
 function draw() {
   background(30);
 
-  shader(theShader);
+  shaderProgram.setUniform('u_time', millis() / 1000.0);
+  shaderProgram.setUniform('u_texture', timTexture);
 
-  // 2× the previous speed
-  rotateY(frameCount * 0.30);
+  push();
 
-  sphere(
-    min(width, height) * 0.35,
-    128,
-    128
-  );
+  rotateY(frameCount * 0.01);
+
+  sphere(200, 96, 48);
+
+  pop();
 }
 
 function windowResized() {
