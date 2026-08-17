@@ -10,7 +10,7 @@ function draw() {
   background(20);
 
   push();
-  rotateY(frameCount * 0.5);
+  rotateY(frameCount * 500);
   rotateX(-0.12);
 
   // Solid red sphere.
