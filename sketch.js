@@ -1,3 +1,9 @@
+let textureImage;
+
+function preload() {
+  textureImage = loadImage('888.jpeg');
+}
+
 function setup() {
   createCanvas(windowWidth, windowHeight, WEBGL);
 }
@@ -8,6 +14,7 @@ function draw() {
   rotateX(frameCount * 0.01);
   rotateY(frameCount * 0.015);
 
+  texture(textureImage);
   box(200);
 }
 
