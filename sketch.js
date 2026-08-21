@@ -1,7 +1,7 @@
 let textureImage;
 
-// Slow, seamless left-to-right background orbit.
-const scrollSpeed = 0.000018;
+// Slow orbit-like horizontal movement of the distant universe.
+const orbitSpeed = 0.000018;
 
 function preload() {
   textureImage = loadImage('888.jpeg');
@@ -10,53 +10,59 @@ function preload() {
 function setup() {
   createCanvas(windowWidth, windowHeight, WEBGL);
   noStroke();
-  imageMode(CENTER);
 }
 
 function draw() {
   background(0);
 
-  // Fixed camera: we're sitting in the middle looking straight into depth.
+  // Fixed viewpoint: the viewer stands on the platform and looks forward.
   camera(0, 0, 0, 0, 0, -1, 0, 1, 0);
 
-  // Put the background far behind the camera plane.
+  const horizon = 0;
+  const floorY = height * 0.5;
+
+  // Distant universe: upper half only.
   const z = -700;
-  const canvasAspect = width / height;
+  const bgTop = -height * 0.5;
+  const bgBottom = horizon;
+  const bgH = bgBottom - bgTop;
   const imageAspect = textureImage.width / textureImage.height;
+  const bgW = bgH * imageAspect;
 
-  let h = height * 1.35;
-  let w = h * imageAspect;
-
-  // Make sure the background completely covers the viewport.
-  if (w < width * 1.25) {
-    w = width * 1.25;
-    h = w / imageAspect;
-  }
-
-  // Continuous horizontal wrap: two copies guarantee no gap.
-  const offset = ((millis() * scrollSpeed) % 1.0) * w;
-  const left = -w * 0.5 - offset;
-  const right = left + w;
+  // Seamless left-to-right orbit-like motion.
+  const offset = ((millis() * orbitSpeed) % 1.0) * bgW;
+  const left = -bgW * 0.5 - offset;
 
   push();
-  translate(0, 0, z);
+  translate(0, (bgTop + bgBottom) * 0.5, z);
   texture(textureImage);
-
-  // Slightly larger than the viewport so the edges are never exposed.
-  beginShape();
-  vertex(left, -h * 0.5, 0, 0, 0);
-  vertex(left + w, -h * 0.5, 0, 1, 0);
-  vertex(left + w, h * 0.5, 0, 1, 1);
-  vertex(left, h * 0.5, 0, 0, 1);
-  endShape(CLOSE);
-
-  beginShape();
-  vertex(right, -h * 0.5, 0, 0, 0);
-  vertex(right + w, -h * 0.5, 0, 1, 0);
-  vertex(right + w, h * 0.5, 0, 1, 1);
-  vertex(right, h * 0.5, 0, 0, 1);
-  endShape(CLOSE);
+  drawBackgroundPanel(left, bgW, bgH);
+  drawBackgroundPanel(left + bgW, bgW, bgH);
   pop();
+
+  // Stationary 3D lookout platform filling the lower half.
+  push();
+  translate(0, floorY + height * 0.25, -320);
+  rotateX(HALF_PI);
+  fill(115, 115, 115);
+  plane(width * 2.5, height * 2.5);
+  pop();
+
+  // Stationary horizon edge.
+  push();
+  translate(0, horizon, -500);
+  fill(80, 80, 80);
+  plane(width * 2.5, 4);
+  pop();
+}
+
+function drawBackgroundPanel(x, w, h) {
+  beginShape();
+  vertex(x, -h * 0.5, 0, 0, 0);
+  vertex(x + w, -h * 0.5, 0, 1, 0);
+  vertex(x + w, h * 0.5, 0, 1, 1);
+  vertex(x, h * 0.5, 0, 0, 1);
+  endShape(CLOSE);
 }
 
 function windowResized() {
