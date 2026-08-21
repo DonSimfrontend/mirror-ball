@@ -1,11 +1,15 @@
 let textureImage;
+let renderer;
 
 function preload() {
   textureImage = loadImage('888.jpeg');
 }
 
 function setup() {
-  createCanvas(windowWidth, windowHeight, WEBGL);
+  renderer = createCanvas(windowWidth, windowHeight, WEBGL);
+
+  // Use nearest-neighbour sampling to preserve the texture's native pixel detail.
+  renderer.getTexture(textureImage).setInterpolation(NEAREST, NEAREST);
 }
 
 function draw() {
@@ -64,9 +68,9 @@ function draw() {
   // Bottom: image upright relative to world Y
   beginShape();
   vertex(-s,  s,  s, u0, v0);
-  vertex( s,  s,  s, u1, v0);
+  vertex( s,  s,  s, u1, v1);
   vertex( s,  s, -s, u1, v1);
-  vertex(-s,  s, -s, u0, v1);
+  vertex(-s,  s, -s, u0, v0);
   endShape(CLOSE);
 }
 
