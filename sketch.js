@@ -1,15 +1,12 @@
 let textureImage;
-let renderer;
 
 function preload() {
   textureImage = loadImage('888.jpeg');
 }
 
 function setup() {
-  renderer = createCanvas(windowWidth, windowHeight, WEBGL);
-
-  // Use nearest-neighbour sampling to preserve the texture's native pixel detail.
-  renderer.getTexture(textureImage).setInterpolation(NEAREST, NEAREST);
+  createCanvas(windowWidth, windowHeight, WEBGL);
+  noStroke();
 }
 
 function draw() {
@@ -18,14 +15,24 @@ function draw() {
   rotateY(frameCount * 0.015);
 
   texture(textureImage);
+  textureWrap(CLAMP, CLAMP);
+  textureMode(NORMAL);
 
   const s = 100;
-  const u0 = 0;
-  const v0 = 0;
-  const u1 = textureImage.width;
-  const v1 = textureImage.height;
+  const aspect = textureImage.width / textureImage.height;
+  const uSpan = 1;
+  const vSpan = 1;
 
-  // Front: image upright
+  // Keep the source image's rectangular proportions on every face.
+  // The image is fitted inside the square face without stretching.
+  const cropU = aspect > 1 ? (1 - 1 / aspect) * 0.5 : 0;
+  const cropV = aspect < 1 ? (1 - aspect) * 0.5 : 0;
+  const u0 = cropU;
+  const u1 = 1 - cropU;
+  const v0 = cropV;
+  const v1 = 1 - cropV;
+
+  // Front
   beginShape();
   vertex(-s, -s,  s, u0, v0);
   vertex( s, -s,  s, u1, v0);
@@ -33,7 +40,7 @@ function draw() {
   vertex(-s,  s,  s, u0, v1);
   endShape(CLOSE);
 
-  // Back: image upright
+  // Back
   beginShape();
   vertex( s, -s, -s, u0, v0);
   vertex(-s, -s, -s, u1, v0);
@@ -41,7 +48,7 @@ function draw() {
   vertex( s,  s, -s, u0, v1);
   endShape(CLOSE);
 
-  // Right: image upright
+  // Right
   beginShape();
   vertex( s, -s,  s, u0, v0);
   vertex( s, -s, -s, u1, v0);
@@ -49,7 +56,7 @@ function draw() {
   vertex( s,  s,  s, u0, v1);
   endShape(CLOSE);
 
-  // Left: image upright
+  // Left
   beginShape();
   vertex(-s, -s, -s, u0, v0);
   vertex(-s, -s,  s, u1, v0);
@@ -57,7 +64,7 @@ function draw() {
   vertex(-s,  s, -s, u0, v1);
   endShape(CLOSE);
 
-  // Top: image upright relative to world Y
+  // Top
   beginShape();
   vertex(-s, -s, -s, u0, v0);
   vertex( s, -s, -s, u1, v0);
@@ -65,12 +72,12 @@ function draw() {
   vertex(-s, -s,  s, u0, v1);
   endShape(CLOSE);
 
-  // Bottom: image upright relative to world Y
+  // Bottom
   beginShape();
   vertex(-s,  s,  s, u0, v0);
-  vertex( s,  s,  s, u1, v1);
+  vertex( s,  s,  s, u1, v0);
   vertex( s,  s, -s, u1, v1);
-  vertex(-s,  s, -s, u0, v0);
+  vertex(-s,  s, -s, u0, v1);
   endShape(CLOSE);
 }
 
