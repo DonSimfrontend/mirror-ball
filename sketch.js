@@ -36,13 +36,26 @@ function draw(now) {
   ctx.fillStyle = '#020308';
   ctx.fillRect(0, 0, w, horizon);
 
-  // Fit the original 888 image into the sky without distortion.
+  // Preserve the 888 image's aspect ratio.
   const scale = skyH / img.naturalHeight;
   const imageW = img.naturalWidth * scale;
-  const x = -(offset % imageW);
 
-  for (let px = x - imageW; px < w + imageW; px += imageW) {
+  // Build a seamless mirrored tile: image -> reversed image -> image.
+  // The two ends meet on identical edge pixels, eliminating the visible seam.
+  const tileW = imageW * 2;
+  const phase = offset % tileW;
+  const start = -phase - tileW;
+
+  for (let px = start; px < w + tileW; px += tileW) {
+    // Normal image.
     ctx.drawImage(img, px, 0, imageW, skyH);
+
+    // Mirrored image immediately follows it.
+    ctx.save();
+    ctx.translate(px + imageW * 2, 0);
+    ctx.scale(-1, 1);
+    ctx.drawImage(img, 0, 0, imageW, skyH);
+    ctx.restore();
   }
 
   // Fixed grey lookout platform.
