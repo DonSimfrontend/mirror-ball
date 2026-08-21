@@ -12,7 +12,6 @@ function draw() {
   background(20);
 
   rotateX(frameCount * 0.01);
-  rotateY(frameCount * 0.015);
 
   texture(textureImage);
   box(200);
