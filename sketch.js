@@ -13,7 +13,7 @@ function setup() {
 
 function draw() {
   background(4, 4, 12);
-  rotateY(frameCount * 0.015);
+  rotateY(frameCount * 0.00375);
 
   const s = 100;
   const aspect = textureImage.width / textureImage.height;
