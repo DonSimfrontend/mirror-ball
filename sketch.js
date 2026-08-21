@@ -1,49 +1,62 @@
 let textureImage;
-let neonShader;
+
+// Slow, seamless left-to-right background orbit.
+const scrollSpeed = 0.000018;
 
 function preload() {
   textureImage = loadImage('888.jpeg');
-  neonShader = loadShader('neon.vert', 'neon.frag');
 }
 
 function setup() {
   createCanvas(windowWidth, windowHeight, WEBGL);
   noStroke();
+  imageMode(CENTER);
 }
 
 function draw() {
-  background(4, 4, 12);
-  rotateY(frameCount * 0.00375);
+  background(0);
 
-  const s = 100;
-  const aspect = textureImage.width / textureImage.height;
-  const cropU = aspect > 1 ? (1 - 1 / aspect) * 0.5 : 0;
-  const cropV = aspect < 1 ? (1 - aspect) * 0.5 : 0;
-  const u0 = cropU;
-  const u1 = 1 - cropU;
-  const v0 = cropV;
-  const v1 = 1 - cropV;
+  // Fixed camera: we're sitting in the middle looking straight into depth.
+  camera(0, 0, 0, 0, 0, -1, 0, 1, 0);
 
-  const faces = [
-    [[-s,-s,s,u0,v0],[s,-s,s,u1,v0],[s,s,s,u1,v1],[-s,s,s,u0,v1]],
-    [[s,-s,-s,u0,v0],[-s,-s,-s,u1,v0],[-s,s,-s,u1,v1],[s,s,-s,u0,v1]],
-    [[s,-s,s,u0,v0],[s,-s,-s,u1,v0],[s,s,-s,u1,v1],[s,s,s,u0,v1]],
-    [[-s,-s,-s,u0,v0],[-s,-s,s,u1,v0],[-s,s,s,u1,v1],[-s,s,-s,u0,v1]],
-    [[-s,-s,-s,u0,v0],[s,-s,-s,u1,v0],[s,-s,s,u1,v1],[-s,-s,s,u0,v1]],
-    [[-s,s,s,u0,v0],[s,s,s,u1,v0],[s,s,-s,u1,v1],[-s,s,-s,u0,v1]]
-  ];
+  // Put the background far behind the camera plane.
+  const z = -700;
+  const canvasAspect = width / height;
+  const imageAspect = textureImage.width / textureImage.height;
 
-  for (const face of faces) {
-    shader(neonShader);
-    neonShader.setUniform('uTexture', textureImage);
-    neonShader.setUniform('uTime', millis() / 1000.0);
-    neonShader.setUniform('uResolution', [width, height]);
-    beginShape();
-    for (const v of face) vertex(v[0], v[1], v[2], v[3], v[4]);
-    endShape(CLOSE);
+  let h = height * 1.35;
+  let w = h * imageAspect;
+
+  // Make sure the background completely covers the viewport.
+  if (w < width * 1.25) {
+    w = width * 1.25;
+    h = w / imageAspect;
   }
 
-  resetShader();
+  // Continuous horizontal wrap: two copies guarantee no gap.
+  const offset = ((millis() * scrollSpeed) % 1.0) * w;
+  const left = -w * 0.5 - offset;
+  const right = left + w;
+
+  push();
+  translate(0, 0, z);
+  texture(textureImage);
+
+  // Slightly larger than the viewport so the edges are never exposed.
+  beginShape();
+  vertex(left, -h * 0.5, 0, 0, 0);
+  vertex(left + w, -h * 0.5, 0, 1, 0);
+  vertex(left + w, h * 0.5, 0, 1, 1);
+  vertex(left, h * 0.5, 0, 0, 1);
+  endShape(CLOSE);
+
+  beginShape();
+  vertex(right, -h * 0.5, 0, 0, 0);
+  vertex(right + w, -h * 0.5, 0, 1, 0);
+  vertex(right + w, h * 0.5, 0, 1, 1);
+  vertex(right, h * 0.5, 0, 0, 1);
+  endShape(CLOSE);
+  pop();
 }
 
 function windowResized() {
