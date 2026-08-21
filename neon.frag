@@ -6,43 +6,34 @@ uniform vec2 uResolution;
 varying vec2 vTexCoord;
 
 void main() {
+  // Rock-steady source image: UV coordinates are never displaced.
   vec2 uv = vTexCoord;
 
-  // Animated cyberpunk-style spatial distortion.
-  vec2 p = uv - 0.5;
-  float r = length(p);
-  float a = atan(p.y, p.x);
-  a += 0.035 * sin(r * 28.0 - uTime * 1.8);
-  a += 0.018 * sin(r * 75.0 + uTime * 3.2);
-  p = vec2(cos(a), sin(a)) * r;
-  uv = p + 0.5;
-
-  float aberration = 0.004 + 0.012 * r;
-  vec2 dir = normalize(p + vec2(0.0001));
-
-  float red = texture2D(uTexture, uv + dir * aberration).r;
+  // Static chromatic separation around the existing pixels.
+  float aberration = 0.0035;
+  float red = texture2D(uTexture, uv + vec2(aberration, 0.0)).r;
   float green = texture2D(uTexture, uv).g;
-  float blue = texture2D(uTexture, uv - dir * aberration).b;
+  float blue = texture2D(uTexture, uv - vec2(aberration, 0.0)).b;
   vec3 col = vec3(red, green, blue);
 
-  // Deep contrast and neon saturation.
+  // Strong cyberpunk contrast and saturation.
   col = pow(max(col, 0.0), vec3(0.82));
   float luminance = dot(col, vec3(0.299, 0.587, 0.114));
   col = mix(vec3(luminance), col, 1.65);
   col *= 1.35;
 
-  // Electric cyan/magenta energy tint derived from the original image.
-  float energy = smoothstep(0.25, 0.95, luminance);
-  col += vec3(0.02, 0.08, 0.16) * energy;
-  col += vec3(0.16, 0.01, 0.11) * smoothstep(0.65, 1.0, col.r);
+  // Make the existing blues and reds electrically vivid.
+  float energy = smoothstep(0.20, 0.90, luminance);
+  col += vec3(0.02, 0.10, 0.20) * energy;
+  col += vec3(0.18, 0.015, 0.12) * smoothstep(0.55, 1.0, col.r);
 
-  // Pulsing scan interference, deliberately subtle so texture detail survives.
-  float scan = 0.97 + 0.03 * sin((uv.y * uResolution.y) * 0.16 + uTime * 5.0);
-  col *= scan;
+  // Very gentle animated brightness pulse only. No image movement.
+  float pulse = 0.96 + 0.04 * sin(uTime * 2.0);
+  col *= pulse;
 
-  // Hot neon edge bloom.
-  float edge = smoothstep(0.22, 0.78, r);
-  col += vec3(0.02, 0.12, 0.22) * edge * (0.55 + 0.45 * sin(uTime * 2.0));
+  // Neon lift toward bright areas.
+  float glow = smoothstep(0.55, 0.95, luminance);
+  col += vec3(0.03, 0.12, 0.24) * glow;
 
   gl_FragColor = vec4(min(col, 1.0), 1.0);
 }
