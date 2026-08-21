@@ -1,70 +1,85 @@
-let textureImage;
+const canvas = document.createElement('canvas');
+const ctx = canvas.getContext('2d');
+const img = new Image();
+let offset = 0;
+let last = performance.now();
+const speed = 18; // pixels per second
 
-// Slow orbit-like horizontal movement of the distant universe.
-const orbitSpeed = 0.000018;
-
-function preload() {
-  textureImage = loadImage('888.jpeg');
+function resize() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  canvas.style.width = '100vw';
+  canvas.style.height = '100vh';
 }
 
-function setup() {
-  createCanvas(windowWidth, windowHeight, WEBGL);
-  noStroke();
+function showMessage(text) {
+  document.body.innerHTML = '';
+  const message = document.createElement('div');
+  message.style.cssText = 'position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#111;color:white;font:16px monospace;padding:24px;text-align:center;';
+  message.textContent = text;
+  document.body.appendChild(message);
 }
 
-function draw() {
-  background(0);
+function draw(now) {
+  const dt = Math.min((now - last) / 1000, 0.1);
+  last = now;
+  offset += speed * dt;
 
-  // Fixed viewpoint: the viewer stands on the platform and looks forward.
-  camera(0, 0, 0, 0, 0, -1, 0, 1, 0);
+  const w = canvas.width;
+  const h = canvas.height;
+  const horizon = h * 0.50;
+  const skyH = horizon;
 
-  const horizon = 0;
-  const floorY = height * 0.5;
+  ctx.clearRect(0, 0, w, h);
 
-  // Distant universe: upper half only.
-  const z = -700;
-  const bgTop = -height * 0.5;
-  const bgBottom = horizon;
-  const bgH = bgBottom - bgTop;
-  const imageAspect = textureImage.width / textureImage.height;
-  const bgW = bgH * imageAspect;
+  // Space above the horizon.
+  ctx.fillStyle = '#020308';
+  ctx.fillRect(0, 0, w, horizon);
 
-  // Seamless left-to-right orbit-like motion.
-  const offset = ((millis() * orbitSpeed) % 1.0) * bgW;
-  const left = -bgW * 0.5 - offset;
+  // Fit the original 888 image into the sky without distortion.
+  const scale = skyH / img.naturalHeight;
+  const imageW = img.naturalWidth * scale;
+  const x = -(offset % imageW);
 
-  push();
-  translate(0, (bgTop + bgBottom) * 0.5, z);
-  texture(textureImage);
-  drawBackgroundPanel(left, bgW, bgH);
-  drawBackgroundPanel(left + bgW, bgW, bgH);
-  pop();
+  for (let px = x - imageW; px < w + imageW; px += imageW) {
+    ctx.drawImage(img, px, 0, imageW, skyH);
+  }
 
-  // Stationary 3D lookout platform filling the lower half.
-  push();
-  translate(0, floorY + height * 0.25, -320);
-  rotateX(HALF_PI);
-  fill(115, 115, 115);
-  plane(width * 2.5, height * 2.5);
-  pop();
+  // Fixed grey lookout platform.
+  const floor = ctx.createLinearGradient(0, horizon, 0, h);
+  floor.addColorStop(0, '#8a8a8a');
+  floor.addColorStop(0.18, '#666');
+  floor.addColorStop(1, '#303030');
+  ctx.fillStyle = floor;
+  ctx.fillRect(0, horizon, w, h - horizon);
 
-  // Stationary horizon edge.
-  push();
-  translate(0, horizon, -500);
-  fill(80, 80, 80);
-  plane(width * 2.5, 4);
-  pop();
+  // Subtle perspective lines make the stationary floor read as 3D.
+  ctx.strokeStyle = 'rgba(255,255,255,0.10)';
+  ctx.lineWidth = 1;
+  const vanishingX = w * 0.5;
+  const vanishingY = horizon;
+  for (let i = -10; i <= 10; i++) {
+    const bottomX = vanishingX + i * w * 0.11;
+    ctx.beginPath();
+    ctx.moveTo(vanishingX, vanishingY);
+    ctx.lineTo(bottomX, h);
+    ctx.stroke();
+  }
+
+  // Horizon boundary.
+  ctx.fillStyle = '#505050';
+  ctx.fillRect(0, horizon, w, 3);
+
+  requestAnimationFrame(draw);
 }
 
-function drawBackgroundPanel(x, w, h) {
-  beginShape();
-  vertex(x, -h * 0.5, 0, 0, 0);
-  vertex(x + w, -h * 0.5, 0, 1, 0);
-  vertex(x + w, h * 0.5, 0, 1, 1);
-  vertex(x, h * 0.5, 0, 0, 1);
-  endShape(CLOSE);
-}
+window.addEventListener('resize', resize);
+document.body.style.margin = '0';
+document.body.style.overflow = 'hidden';
+document.body.style.background = '#111';
+document.body.appendChild(canvas);
+resize();
 
-function windowResized() {
-  resizeCanvas(windowWidth, windowHeight);
-}
+img.onload = () => requestAnimationFrame(draw);
+img.onerror = () => showMessage('Could not load 888.jpeg');
+img.src = '888.jpeg';
