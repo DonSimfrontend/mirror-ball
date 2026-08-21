@@ -6,43 +6,39 @@ uniform vec2 uResolution;
 varying vec2 vTexCoord;
 
 void main() {
-  // The nebula stays completely fixed. Only its own pixels are amplified.
+  // The nebula remains completely fixed.
   vec2 uv = vTexCoord;
+  vec3 col = texture2D(uTexture, uv).rgb;
 
-  float aberration = 0.0025;
-  float red = texture2D(uTexture, uv + vec2(aberration, 0.0)).r;
-  float green = texture2D(uTexture, uv).g;
-  float blue = texture2D(uTexture, uv - vec2(aberration, 0.0)).b;
-  vec3 col = vec3(red, green, blue);
-
+  // Preserve the existing image, then make its natural colours punchier.
   col = pow(max(col, 0.0), vec3(0.82));
   float luminance = dot(col, vec3(0.299, 0.587, 0.114));
-  col = mix(vec3(luminance), col, 1.65);
-  col *= 1.35;
+  col = mix(vec3(luminance), col, 1.7);
 
-  // Existing colours remain the source of the glow.
-  float energy = smoothstep(0.20, 0.90, luminance);
-  col += vec3(0.02, 0.10, 0.20) * energy;
-  col += vec3(0.18, 0.015, 0.12) * smoothstep(0.55, 1.0, col.r);
+  // Select only the colour families the user asked for.
+  // Red/orange: strong red, with green present for orange.
+  float redOrange = smoothstep(0.18, 0.65, col.r) *
+                    smoothstep(0.08, 0.55, col.r - col.b * 0.55);
 
-  // Pixel-level scan: no solid blue/magenta line is added.
-  // The scan only magnifies the colour already present in each pixel.
-  float scanPos = fract(uTime * 0.16);
-  float scanCoord = fract(uv.x * 1.08 + uv.y * 0.10);
-  float d = abs(scanCoord - scanPos);
-  d = min(d, 1.0 - d);
+  // Blue/cyan: blue dominant, allowing vivid cyan/blue nebula regions.
+  float blue = smoothstep(0.16, 0.62, col.b) *
+               smoothstep(0.02, 0.32, col.b - col.r * 0.55);
 
-  float scan = exp(-d * 24.0);
-  float hot = exp(-d * 180.0);
+  // Keep unrelated pixels essentially untouched.
+  float selected = max(redOrange, blue);
 
-  // Each pixel gets its own colour-preserving boost.
-  vec3 pixelGlow = col;
-  float colourStrength = smoothstep(0.03, 0.85, luminance);
-  col += pixelGlow * scan * (0.65 + 0.75 * colourStrength);
-  col += pixelGlow * hot * 1.10;
+  // Gentle continuous pulse: there is NO moving scan line.
+  float pulse = 0.88 + 0.12 * sin(uTime * 1.8);
 
-  // Pull bright individual colours toward their own neon intensity.
-  col += pow(max(pixelGlow, 0.0), vec3(2.2)) * scan * 0.65;
+  // Each selected pixel glows using its OWN original colour.
+  vec3 selectedGlow = pow(max(col, 0.0), vec3(1.35));
+  col += selectedGlow * selected * 0.85 * pulse;
+  col *= 1.0 + selected * 0.42 * pulse;
+
+  // Add a restrained colour-specific neon lift.
+  col.r += redOrange * col.r * 0.30;
+  col.g += redOrange * col.g * 0.18;
+  col.b += blue * col.b * 0.40;
 
   gl_FragColor = vec4(min(col, 1.0), 1.0);
 }
