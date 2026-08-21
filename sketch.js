@@ -3,7 +3,7 @@ const ctx = canvas.getContext('2d');
 const img = new Image();
 let offset = 0;
 let last = performance.now();
-const speed = 18; // pixels per second
+const speed = 54; // 3x the previous 18 px/s
 
 function resize() {
   canvas.width = window.innerWidth;
@@ -32,25 +32,17 @@ function draw(now) {
 
   ctx.clearRect(0, 0, w, h);
 
-  // Space above the horizon.
   ctx.fillStyle = '#020308';
   ctx.fillRect(0, 0, w, horizon);
 
-  // Preserve the 888 image's aspect ratio.
   const scale = skyH / img.naturalHeight;
   const imageW = img.naturalWidth * scale;
-
-  // Build a seamless mirrored tile: image -> reversed image -> image.
-  // The two ends meet on identical edge pixels, eliminating the visible seam.
   const tileW = imageW * 2;
   const phase = offset % tileW;
   const start = -phase - tileW;
 
   for (let px = start; px < w + tileW; px += tileW) {
-    // Normal image.
     ctx.drawImage(img, px, 0, imageW, skyH);
-
-    // Mirrored image immediately follows it.
     ctx.save();
     ctx.translate(px + imageW * 2, 0);
     ctx.scale(-1, 1);
@@ -58,7 +50,6 @@ function draw(now) {
     ctx.restore();
   }
 
-  // Fixed grey lookout platform.
   const floor = ctx.createLinearGradient(0, horizon, 0, h);
   floor.addColorStop(0, '#8a8a8a');
   floor.addColorStop(0.18, '#666');
@@ -66,7 +57,6 @@ function draw(now) {
   ctx.fillStyle = floor;
   ctx.fillRect(0, horizon, w, h - horizon);
 
-  // Subtle perspective lines make the stationary floor read as 3D.
   ctx.strokeStyle = 'rgba(255,255,255,0.10)';
   ctx.lineWidth = 1;
   const vanishingX = w * 0.5;
@@ -79,7 +69,6 @@ function draw(now) {
     ctx.stroke();
   }
 
-  // Horizon boundary.
   ctx.fillStyle = '#505050';
   ctx.fillRect(0, horizon, w, 3);
 
